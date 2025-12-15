@@ -1,12 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/login_screen.dart';  // ✅ Import login screen
+import 'package:firebase_core/firebase_core.dart';
+import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
+  // 🔥 STEP 1: Initialize Flutter binding
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize auth service
+  // 🔥 STEP 2: Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyCNWGlyyd2kMbVd3GxbSGX84jHAs25VcUE",
+        authDomain: "estatehub-fdf4d.firebaseapp.com",
+        projectId: "estatehub-fdf4d",
+        storageBucket: "estatehub-fdf4d.firebasestorage.app",
+        messagingSenderId: "379559639372",
+        appId: "1:379559639372:web:ad6f4488878d0cb18cb7e9",
+      ),
+    );
+    print("✅ Firebase initialized successfully");
+  } catch (e) {
+    print("❌ Firebase initialization error: $e");
+  }
+  
+  // 🔥 STEP 3: Initialize auth service
   await AuthService().initialize();
   
   // Set status bar style
@@ -213,13 +232,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             ],
                           ),
                           const SizedBox(height: 60),
-                          
-                          // ✅ GET STARTED BUTTON - NAVIGATES TO LOGIN
                           _GradientButton(
                             text: 'Get Started',
                             icon: Icons.arrow_forward_rounded,
                             onPressed: () {
-                              // Navigate to Login Screen
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -228,7 +244,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               );
                             },
                           ),
-                          
                           const SizedBox(height: 20),
                           TextButton.icon(
                             onPressed: () {

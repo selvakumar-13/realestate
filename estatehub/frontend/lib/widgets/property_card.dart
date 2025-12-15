@@ -36,7 +36,7 @@ class PropertyCard extends StatelessWidget {
             BoxShadow(
               color: AppColors.slate200.withOpacity(0.3),
               blurRadius: 20,
-              offset: Offset(0, 8),
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -48,20 +48,26 @@ class PropertyCard extends StatelessWidget {
               children: [
                 // Property image
                 ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.network(
-                    property.images.first,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 200,
-                        color: AppColors.slate100,
-                        child: Icon(Icons.home, size: 48, color: AppColors.slate400),
-                      );
-                    },
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: property.images.isNotEmpty
+                      ? Image.network(
+                          property.images.first,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              color: AppColors.slate100,
+                              child: const Icon(Icons.home, size: 48, color: AppColors.slate400),
+                            );
+                          },
+                        )
+                      : Container(
+                          height: 200,
+                          color: AppColors.slate100,
+                          child: const Icon(Icons.home, size: 48, color: AppColors.slate400),
+                        ),
                 ),
                 
                 // Badges overlay
@@ -75,14 +81,14 @@ class PropertyCard extends StatelessWidget {
                       Row(
                         children: [
                           if (property.verified)
-                            BadgeWidget(
+                            const BadgeWidget(
                               text: 'Verified',
                               type: BadgeType.verified,
                               icon: Icons.check_circle,
                             ),
                           if (property.featured) ...[
-                            SizedBox(width: 8),
-                            BadgeWidget(
+                            const SizedBox(width: 8),
+                            const BadgeWidget(
                               text: 'Featured',
                               type: BadgeType.featured,
                             ),
@@ -92,7 +98,7 @@ class PropertyCard extends StatelessWidget {
                       
                       // Favorite button
                       Container(
-                        padding: EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(8),
@@ -103,7 +109,7 @@ class PropertyCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.favorite_border,
                           size: 20,
                           color: AppColors.slate600,
@@ -127,14 +133,14 @@ class PropertyCard extends StatelessWidget {
             
             // Content section
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Title
                   Text(
                     property.title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
@@ -142,17 +148,17 @@ class PropertyCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   
                   // Location
                   Row(
                     children: [
-                      Icon(Icons.location_on, size: 16, color: AppColors.slate400),
-                      SizedBox(width: 4),
+                      const Icon(Icons.location_on, size: 16, color: AppColors.slate400),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           property.location,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
@@ -162,12 +168,12 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   
                   // Property details
                   Container(
-                    padding: EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    decoration: const BoxDecoration(
                       border: Border(
                         bottom: BorderSide(color: AppColors.slate100),
                       ),
@@ -175,75 +181,76 @@ class PropertyCard extends StatelessWidget {
                     child: Row(
                       children: [
                         if (property.bedrooms != null) ...[
-                          Icon(Icons.bed, size: 16, color: AppColors.slate400),
-                          SizedBox(width: 4),
+                          const Icon(Icons.bed, size: 16, color: AppColors.slate400),
+                          const SizedBox(width: 4),
                           Text(
                             '${property.bedrooms} BHK',
-                            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
                           ),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                         ],
                         if (property.bathrooms != null) ...[
-                          Icon(Icons.bathtub, size: 16, color: AppColors.slate400),
-                          SizedBox(width: 4),
+                          const Icon(Icons.bathtub, size: 16, color: AppColors.slate400),
+                          const SizedBox(width: 4),
                           Text(
                             '${property.bathrooms} Bath',
-                            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
                           ),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                         ],
-                        Icon(Icons.straighten, size: 16, color: AppColors.slate400),
-                        SizedBox(width: 4),
+                        const Icon(Icons.straighten, size: 16, color: AppColors.slate400),
+                        const SizedBox(width: 4),
                         Text(
-                          '${property.areaSqft} sqft',
-                          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                          '${property.areaSqft.toInt()} sqft',
+                          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   
-                  // Amenities
+                  // Amenities - FIXED VERSION
                   if (property.amenities.isNotEmpty)
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: property.amenities.take(3).map((amenity) {
-                        return Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.slate50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            amenity,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
+                      children: [
+                        // Show first 3 amenities
+                        ...property.amenities.take(3).map((amenity) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.slate50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              amenity,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          );
+                        }),
+                        // Show "+X more" if there are more than 3
+                        if (property.amenities.length > 3)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.slate50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '+${property.amenities.length - 3}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ),
-                        );
-                      }).toList()
-                        ..add(
-                          property.amenities.length > 3
-                              ? Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.slate50,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '+${property.amenities.length - 3}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                )
-                              : SizedBox.shrink(),
-                        ),
+                      ],
                     ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   
                   // Price and button
                   Row(
@@ -254,14 +261,14 @@ class PropertyCard extends StatelessWidget {
                         children: [
                           Text(
                             formatPrice(property.price),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
                           ),
                           if (property.purpose == 'rent' || property.purpose == 'flat')
-                            Text(
+                            const Text(
                               '/month',
                               style: TextStyle(
                                 fontSize: 12,
@@ -272,7 +279,7 @@ class PropertyCard extends StatelessWidget {
                       ),
                       
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
                           gradient: AppColors.emeraldGradient,
                           borderRadius: BorderRadius.circular(12),
@@ -280,11 +287,11 @@ class PropertyCard extends StatelessWidget {
                             BoxShadow(
                               color: AppColors.emeraldPrimary.withOpacity(0.3),
                               blurRadius: 8,
-                              offset: Offset(0, 4),
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: Text(
+                        child: const Text(
                           'View Details',
                           style: TextStyle(
                             color: Colors.white,

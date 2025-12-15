@@ -6,6 +6,7 @@ class AppColors {
   static const Color emeraldDark = Color(0xFF059669);
   static const Color emeraldLight = Color(0xFF34D399);
   static const Color emerald50 = Color(0xFFECFDF5);
+  static const Color emerald200 = Color(0xFFA7F3D0); // Added missing color
   
   // Secondary - Blue
   static const Color bluePrimary = Color(0xFF3B82F6);

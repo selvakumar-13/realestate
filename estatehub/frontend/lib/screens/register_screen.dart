@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
@@ -65,7 +67,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (result['success']) {
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message']),
@@ -74,13 +75,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      // Navigate back to login or home
       await Future.delayed(const Duration(seconds: 1));
       if (mounted) {
-        Navigator.of(context).pop(); // Go back to login
+        // 🔥 UPDATED: Navigate to home screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+        );
       }
     } else {
-      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message']),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  // 🔥 GOOGLE SIGN-UP HANDLER
+  Future<void> _handleGoogleSignUp() async {
+    setState(() => _isGoogleLoading = true);
+
+    final result = await _authService.signInWithGoogle();
+
+    setState(() => _isGoogleLoading = false);
+
+    if (!mounted) return;
+
+    if (result['success']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message']),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        // 🔥 UPDATED: Navigate to home screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+        );
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message']),
@@ -94,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // slate-50
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -127,14 +170,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   
                   const SizedBox(height: 32),
                   
-                  // Create Account text
                   const Text(
                     'Create Account',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A), // slate-900
+                      color: Color(0xFF0F172A),
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -146,11 +188,107 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
-                      color: const Color(0xFF475569), // slate-600
+                      color: const Color(0xFF475569),
                     ),
                   ),
                   
                   const SizedBox(height: 40),
+                  
+                  // 🔥 GOOGLE SIGN-UP BUTTON (at top)
+                  Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _isGoogleLoading ? null : _handleGoogleSignUp,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Center(
+                          child: _isGoogleLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.network(
+                                      'https://www.google.com/favicon.ico',
+                                      height: 24,
+                                      width: 24,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return const Icon(
+                                          Icons.g_mobiledata,
+                                          size: 32,
+                                          color: Color(0xFF4285F4),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      'Sign up with Google',
+                                      style: TextStyle(
+                                        color: Color(0xFF0F172A),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Divider
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          color: const Color(0xFFE2E8F0),
+                          thickness: 1,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: const Color(0xFF94A3B8),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: const Color(0xFFE2E8F0),
+                          thickness: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 24),
                   
                   // Full Name field
                   _buildTextField(
@@ -199,7 +337,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     icon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
                     validator: (value) {
-                      // Optional field
                       if (value != null && value.isNotEmpty) {
                         if (value.length < 10) {
                           return 'Please enter a valid phone number';
@@ -328,8 +465,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [
-                          Color(0xFF10B981), // emerald-500
-                          Color(0xFF059669), // emerald-600
+                          Color(0xFF10B981),
+                          Color(0xFF059669),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -368,37 +505,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Divider
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          color: const Color(0xFFE2E8F0),
-                          thickness: 1,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(
-                            color: const Color(0xFF94A3B8),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: const Color(0xFFE2E8F0),
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
                   ),
                   
                   const SizedBox(height: 24),
@@ -443,7 +549,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Helper method to build text fields
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,

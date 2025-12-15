@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "379559639372",
+    "project_id": "estatehub-fdf4d",
+    "storage_bucket": "estatehub-fdf4d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379559639372:android:4466f9bb8dab2dcf8cb7e9",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "379559639372-5831jnovoe20dhnga2u2hoveimim1fbe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq2jEyrOH2iZh-6aCGx2F2OMJQvkV__2k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "379559639372-5831jnovoe20dhnga2u2hoveimim1fbe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

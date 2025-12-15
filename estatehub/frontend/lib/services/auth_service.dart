@@ -1,30 +1,34 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
 import '../config/api_config.dart';
 
 class AuthService {
-  // Singleton pattern
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  // Keys for SharedPreferences
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
 
-  // Current user and token
   String? _token;
   User? _currentUser;
 
-  // Getters
   String? get token => _token;
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _token != null && _currentUser != null;
 
+  // 🔥 FIREBASE & GOOGLE SIGN-IN INSTANCES
+  final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
+
   // ============================================================================
-  // INITIALIZE - Load saved token and user on app start
+  // INITIALIZE
   // ============================================================================
   Future<void> initialize() async {
     try {
@@ -35,13 +39,106 @@ class AuthService {
       if (userJson != null) {
         _currentUser = User.fromJson(jsonDecode(userJson));
       }
+      
+      print("✅ Auth Service initialized");
     } catch (e) {
-      print('Error initializing auth: $e');
+      print('❌ Error initializing auth: $e');
     }
   }
 
   // ============================================================================
-  // LOGIN
+  // 🔥 GOOGLE SIGN-IN
+  // ============================================================================
+  Future<Map<String, dynamic>> signInWithGoogle() async {
+    try {
+      print("🔵 Starting Google Sign-In...");
+      
+      // 1️⃣ Trigger Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      
+      if (googleUser == null) {
+        print("⚠️ User cancelled Google Sign-In");
+        return {
+          'success': false,
+          'message': 'Sign-in cancelled',
+        };
+      }
+
+      print("🔵 Google user selected: ${googleUser.email}");
+
+      // 2️⃣ Obtain auth details
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      print("🔵 Got Google auth tokens");
+
+      // 3️⃣ Create Firebase credential
+      final credential = firebase_auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      print("🔵 Created Firebase credential");
+
+      // 4️⃣ Sign in to Firebase
+      final firebase_auth.UserCredential userCredential = 
+          await _firebaseAuth.signInWithCredential(credential);
+
+      print("🔵 Signed in to Firebase");
+
+      // 5️⃣ Get Firebase user
+      final firebase_auth.User? firebaseUser = userCredential.user;
+
+      if (firebaseUser == null) {
+        print("❌ Firebase user is null");
+        return {
+          'success': false,
+          'message': 'Authentication failed',
+        };
+      }
+
+      print("🔵 Firebase user: ${firebaseUser.email}");
+
+      // 6️⃣ Get Firebase ID token
+      final String? idToken = await firebaseUser.getIdToken();
+
+      // 7️⃣ Create local user object
+      final user = User(
+        id: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        fullName: firebaseUser.displayName ?? googleUser.displayName ?? '',
+        phone: firebaseUser.phoneNumber,
+        isActive: true,
+        createdAt: DateTime.now(),
+      );
+
+      // 8️⃣ Save token and user data
+      await _saveAuthData(idToken ?? '', user);
+
+      print("✅ Google Sign-In successful!");
+
+      return {
+        'success': true,
+        'message': 'Signed in with Google successfully!',
+        'user': user,
+      };
+
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      print("❌ Firebase Auth Error: ${e.code} - ${e.message}");
+      return {
+        'success': false,
+        'message': _getFirebaseErrorMessage(e.code),
+      };
+    } catch (e) {
+      print("❌ Google Sign-In Error: $e");
+      return {
+        'success': false,
+        'message': 'Failed to sign in with Google. Please try again.',
+      };
+    }
+  }
+
+  // ============================================================================
+  // EMAIL/PASSWORD LOGIN
   // ============================================================================
   Future<Map<String, dynamic>> login({
     required String email,
@@ -52,7 +149,7 @@ class AuthService {
         Uri.parse(ApiConfig.loginUrl),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
-          'username': email, // FastAPI OAuth2 uses 'username' field
+          'username': email,
           'password': password,
         },
       );
@@ -61,7 +158,6 @@ class AuthService {
         final data = jsonDecode(response.body);
         final authResponse = AuthResponse.fromJson(data);
         
-        // Save token and user
         await _saveAuthData(authResponse.accessToken, authResponse.user);
         
         return {
@@ -110,7 +206,6 @@ class AuthService {
         final data = jsonDecode(response.body);
         final authResponse = AuthResponse.fromJson(data);
         
-        // Save token and user
         await _saveAuthData(authResponse.accessToken, authResponse.user);
         
         return {
@@ -139,20 +234,30 @@ class AuthService {
   // ============================================================================
   Future<void> logout() async {
     try {
+      // Sign out from Google
+      await _googleSignIn.signOut();
+      
+      // Sign out from Firebase
+      await _firebaseAuth.signOut();
+      
+      // Clear local storage
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_tokenKey);
       await prefs.remove(_userKey);
       
       _token = null;
       _currentUser = null;
+      
+      print("✅ Logged out successfully");
     } catch (e) {
       print('Logout error: $e');
     }
   }
 
   // ============================================================================
-  // SAVE AUTH DATA
+  // HELPER METHODS
   // ============================================================================
+  
   Future<void> _saveAuthData(String token, User user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -161,14 +266,13 @@ class AuthService {
       
       _token = token;
       _currentUser = user;
+      
+      print("✅ Auth data saved");
     } catch (e) {
       print('Error saving auth data: $e');
     }
   }
 
-  // ============================================================================
-  // GET AUTHORIZATION HEADER
-  // ============================================================================
   Map<String, String> getAuthHeaders() {
     if (_token == null) {
       return {'Content-Type': 'application/json'};
@@ -179,19 +283,24 @@ class AuthService {
     };
   }
 
-  // ============================================================================
-  // VERIFY TOKEN (Optional - check if token is still valid)
-  // ============================================================================
-  Future<bool> verifyToken() async {
-    if (_token == null) return false;
-    
-    try {
-      // You can add an endpoint to verify token if needed
-      // For now, just check if token exists
-      return true;
-    } catch (e) {
-      print('Token verification error: $e');
-      return false;
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'account-exists-with-different-credential':
+        return 'An account already exists with this email';
+      case 'invalid-credential':
+        return 'Invalid credentials';
+      case 'operation-not-allowed':
+        return 'Google Sign-In is not enabled';
+      case 'user-disabled':
+        return 'This account has been disabled';
+      case 'user-not-found':
+        return 'No account found';
+      case 'wrong-password':
+        return 'Incorrect password';
+      case 'network-request-failed':
+        return 'Network error. Please check your connection';
+      default:
+        return 'Authentication failed. Please try again.';
     }
   }
 }
